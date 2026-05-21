@@ -15,22 +15,29 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# pnpm
+# pnpm (global, available to all users)
 RUN npm install -g pnpm@latest
 
-# Rust
+# Runner user
+RUN useradd -m -s /bin/bash runner
+
+# Rust (installed as runner user)
+USER runner
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV PATH="/home/runner/.cargo/bin:${PATH}"
 RUN cargo install tauri-cli --version "^2" --locked
 
-# GitHub Actions Runner
+# GitHub Actions Runner (as root for installdependencies, then chown)
+USER root
 ARG RUNNER_VERSION=2.325.0
 RUN mkdir -p /actions-runner && cd /actions-runner \
     && curl -sL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | tar xz \
-    && ./bin/installdependencies.sh
+    && ./bin/installdependencies.sh \
+    && chown -R runner:runner /actions-runner
 
 COPY entrypoint.sh /actions-runner/entrypoint.sh
 RUN chmod +x /actions-runner/entrypoint.sh
 
+USER runner
 WORKDIR /actions-runner
 ENTRYPOINT ["/actions-runner/entrypoint.sh"]
