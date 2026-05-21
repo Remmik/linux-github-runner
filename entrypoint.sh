@@ -13,6 +13,8 @@ REG_TOKEN=$(curl -s -X POST \
   -H "Accept: application/vnd.github+json" \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runners/registration-token" | jq -r .token)
 
+export RUNNER_ALLOW_RUNASROOT=1
+
 # Configure
 ./config.sh --url "https://github.com/${GITHUB_REPOSITORY}" \
   --token "$REG_TOKEN" \
