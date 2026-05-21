@@ -29,7 +29,7 @@ RUN mkdir -p /actions-runner && cd /actions-runner \
     && curl -sL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | tar xz \
     && ./bin/installdependencies.sh
 
-COPY entrypoint-linux.sh /actions-runner/entrypoint.sh
+COPY entrypoint.sh /actions-runner/entrypoint.sh
 RUN chmod +x /actions-runner/entrypoint.sh
 
 WORKDIR /actions-runner
