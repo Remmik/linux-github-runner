@@ -18,8 +18,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 # pnpm (global, available to all users)
 RUN npm install -g pnpm@latest
 
-# Runner user
-RUN useradd -m -s /bin/bash runner
+# Runner user (UID 1000 to match k8s securityContext)
+RUN useradd -m -s /bin/bash -u 1000 runner
 
 # Rust (installed as runner user)
 USER runner
@@ -35,7 +35,7 @@ RUN mkdir -p /actions-runner && cd /actions-runner \
     && ./bin/installdependencies.sh \
     && chown -R runner:runner /actions-runner
 
-COPY entrypoint.sh /actions-runner/entrypoint.sh
+COPY --chown=runner:runner entrypoint.sh /actions-runner/entrypoint.sh
 RUN chmod +x /actions-runner/entrypoint.sh
 
 USER runner
