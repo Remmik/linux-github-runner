@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Base deps + Tauri Linux requirements
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates git sudo jq \
+    curl ca-certificates git sudo jq zip \
     libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev \
     build-essential pkg-config \
     lib32gcc-s1 \
