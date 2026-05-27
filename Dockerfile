@@ -38,7 +38,7 @@ RUN cargo install tauri-cli --version "^2" --locked
 
 # GitHub Actions Runner (as root for installdependencies, then chown)
 USER root
-ARG RUNNER_VERSION=2.325.0
+ARG RUNNER_VERSION=2.334.0
 RUN mkdir -p /actions-runner && cd /actions-runner \
     && curl -sL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | tar xz \
     && ./bin/installdependencies.sh \
