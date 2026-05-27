@@ -2,12 +2,13 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Base deps + Tauri Linux requirements
+# Base deps + Tauri Linux requirements + buildah for container builds
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates git sudo jq zip \
     libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev \
     build-essential pkg-config \
     lib32gcc-s1 \
+    buildah fuse-overlayfs \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 24
@@ -20,6 +21,14 @@ RUN npm install -g pnpm@latest
 
 # Runner user (UID 1000 to match k8s securityContext)
 RUN useradd -m -s /bin/bash -u 1000 runner
+
+# Buildah rootless config
+RUN mkdir -p /home/runner/.config/containers && \
+    echo '[storage]' > /home/runner/.config/containers/storage.conf && \
+    echo 'driver = "overlay"' >> /home/runner/.config/containers/storage.conf && \
+    echo '[storage.options.overlay]' >> /home/runner/.config/containers/storage.conf && \
+    echo 'mount_program = "/usr/bin/fuse-overlayfs"' >> /home/runner/.config/containers/storage.conf && \
+    chown -R runner:runner /home/runner/.config
 
 # Rust (installed as runner user)
 USER runner
