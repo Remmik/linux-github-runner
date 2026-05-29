@@ -28,10 +28,11 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 # pnpm (global, available to all users)
 RUN npm install -g pnpm@latest
 
-# Runner user (UID 1000 to match k8s securityContext)
+# Runner user (UID 1000, passwordless sudo for buildah)
 RUN useradd -m -s /bin/bash -u 1000 runner && \
     echo "runner:100000:65536" >> /etc/subuid && \
-    echo "runner:100000:65536" >> /etc/subgid
+    echo "runner:100000:65536" >> /etc/subgid && \
+    echo "runner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/runner
 
 # Buildah config for unprivileged k3s pods (no CLONE_NEWUSER available).
 # Uses vfs storage (no overlayfs) and chroot isolation (no user namespaces).
@@ -57,6 +58,5 @@ RUN mkdir -p /actions-runner && cd /actions-runner \
 COPY --chown=runner:runner entrypoint.sh /actions-runner/entrypoint.sh
 RUN chmod +x /actions-runner/entrypoint.sh
 
-USER runner
 WORKDIR /actions-runner
 ENTRYPOINT ["/actions-runner/entrypoint.sh"]
