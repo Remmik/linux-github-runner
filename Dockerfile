@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev \
     build-essential pkg-config \
     lib32gcc-s1 \
+    uidmap \
     && rm -rf /var/lib/apt/lists/*
 
 # Buildah from Kubic (v1.30+, supports --isolation chroot without CLONE_NEWUSER)
@@ -28,7 +29,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 RUN npm install -g pnpm@latest
 
 # Runner user (UID 1000 to match k8s securityContext)
-RUN useradd -m -s /bin/bash -u 1000 runner
+RUN useradd -m -s /bin/bash -u 1000 runner && \
+    echo "runner:100000:65536" >> /etc/subuid && \
+    echo "runner:100000:65536" >> /etc/subgid
 
 # Buildah config for unprivileged k3s pods (no CLONE_NEWUSER available).
 # Uses vfs storage (no overlayfs) and chroot isolation (no user namespaces).
