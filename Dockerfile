@@ -2,14 +2,22 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Base deps + Tauri Linux requirements + buildah for container builds
+# Base deps + Tauri Linux requirements
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates git sudo jq zip \
     libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev \
     build-essential pkg-config \
     lib32gcc-s1 \
-    buildah \
     && rm -rf /var/lib/apt/lists/*
+
+# Buildah from Kubic (v1.30+, supports --isolation chroot without CLONE_NEWUSER)
+RUN . /etc/os-release && \
+    curl -fsSL "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_${VERSION_ID}/Release.key" \
+      | gpg --dearmor -o /usr/share/keyrings/kubic.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/kubic.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_${VERSION_ID}/ /" \
+      > /etc/apt/sources.list.d/kubic.list && \
+    apt-get update && apt-get install -y --no-install-recommends buildah && \
+    rm -rf /var/lib/apt/lists/*
 
 # Node.js 24
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
