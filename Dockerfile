@@ -34,12 +34,11 @@ RUN useradd -m -s /bin/bash -u 1000 runner && \
     echo "runner:100000:65536" >> /etc/subgid && \
     echo "runner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/runner
 
-# Buildah config for unprivileged k3s pods (no CLONE_NEWUSER available).
-# Uses vfs storage (no overlayfs) and chroot isolation (no user namespaces).
-RUN mkdir -p /home/runner/.config/containers && \
-    printf '[storage]\ndriver = "vfs"\n' > /home/runner/.config/containers/storage.conf && \
+# Buildah: vfs storage for k3s (overlayfs-on-overlayfs not supported)
+RUN printf '[storage]\ndriver = "vfs"\n' > /etc/containers/storage.conf && \
+    mkdir -p /home/runner/.config/containers && \
+    cp /etc/containers/storage.conf /home/runner/.config/containers/storage.conf && \
     chown -R runner:runner /home/runner/.config
-ENV BUILDAH_ISOLATION=chroot
 
 # Rust (installed as runner user)
 USER runner
