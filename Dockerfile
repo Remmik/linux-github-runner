@@ -35,7 +35,8 @@ RUN useradd -m -s /bin/bash -u 1000 runner && \
     echo "runner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/runner
 
 # Buildah: vfs storage for k3s (overlayfs-on-overlayfs not supported)
-RUN printf '[storage]\ndriver = "vfs"\n' > /etc/containers/storage.conf && \
+RUN printf '[storage]\ndriver = "vfs"\nrunroot = "/var/run/containers/storage"\ngraphroot = "/var/lib/containers/storage"\n' > /etc/containers/storage.conf && \
+    mkdir -p /var/run/containers/storage /var/lib/containers/storage && \
     mkdir -p /home/runner/.config/containers && \
     cp /etc/containers/storage.conf /home/runner/.config/containers/storage.conf && \
     chown -R runner:runner /home/runner/.config
