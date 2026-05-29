@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev \
     build-essential pkg-config \
     lib32gcc-s1 \
-    buildah fuse-overlayfs \
+    buildah \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 24
@@ -22,13 +22,12 @@ RUN npm install -g pnpm@latest
 # Runner user (UID 1000 to match k8s securityContext)
 RUN useradd -m -s /bin/bash -u 1000 runner
 
-# Buildah rootless config
+# Buildah config for unprivileged k3s pods (no CLONE_NEWUSER available).
+# Uses vfs storage (no overlayfs) and chroot isolation (no user namespaces).
 RUN mkdir -p /home/runner/.config/containers && \
-    echo '[storage]' > /home/runner/.config/containers/storage.conf && \
-    echo 'driver = "overlay"' >> /home/runner/.config/containers/storage.conf && \
-    echo '[storage.options.overlay]' >> /home/runner/.config/containers/storage.conf && \
-    echo 'mount_program = "/usr/bin/fuse-overlayfs"' >> /home/runner/.config/containers/storage.conf && \
+    printf '[storage]\ndriver = "vfs"\n' > /home/runner/.config/containers/storage.conf && \
     chown -R runner:runner /home/runner/.config
+ENV BUILDAH_ISOLATION=chroot
 
 # Rust (installed as runner user)
 USER runner
